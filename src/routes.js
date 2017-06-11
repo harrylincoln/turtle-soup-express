@@ -10,6 +10,9 @@ const NodeRSA = require('node-rsa');
 let idToken = '';
 const fbPrivateKey = serviceAccount.private_key;
 const key = new NodeRSA(fbPrivateKey).exportKey('pkcs8-public-pem');
+const db = admin.database();
+const ref = db.ref("users");
+
 // console.log('Private key ---->', key);
 
 router.use((req, res, next) => {
@@ -62,22 +65,44 @@ router.use('/create-user', (req, res) => {
       email: req.body.emailAddress,
       emailVerified: false,
       password: req.body.pass,
-      displayName: "Client -> BE -> firebase",
-      photoURL: "http://www.example.com/12345678/photo.png",
-      disabled: false
+      displayName: "Ally Pally"
     })
     .then(function(userRecord) {
       // See the UserRecord reference doc for the contents of userRecord.
-      console.log("Successfully created new user:", userRecord.uid);
+      console.log("Successfully created new user:", userRecord);
+      console.log("Setting new stuff");
+
+      ref.child(userRecord.uid).set({
+          displayName: userRecord.displayName,
+          test: 'test'
+      });
+      console.log('set new stuff');
       res.json({
-        message: 'successfully created a new user',
-        userRecord: userRecord
+        message: 'set new stuff',
+        user: userRecord
       })
     })
     .catch(function(error) {
       console.log("Error creating new user:", error);
     });
 });
+
+router.use('/add-data', (req, res) => {
+  console.log('add-data endpoint: req', req.body);
+
+  admin.auth().updateUser(req.body.uid, {
+    test: 'YOOOOOOO'
+  })
+  .then(function(userRecord) {
+      console.log("Successfully added new stuff");
+      res.json({
+        userRecord: userRecord
+      })
+    })
+    .catch(function(error) {
+      console.log("Error adding info:", error);
+    });
+})
 
 router.get('/api/hello', (req, res) => {
     res.json({
