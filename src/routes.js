@@ -11,7 +11,6 @@ let idToken = '';
 const fbPrivateKey = serviceAccount.private_key;
 const key = new NodeRSA(fbPrivateKey).exportKey('pkcs8-public-pem');
 const db = admin.database();
-const ref = db.ref("users");
 
 // console.log('Private key ---->', key);
 
@@ -27,6 +26,37 @@ router.get('/', (req, res) => {
     });
 });
 
+router.use('/create-user', (req, res) => {
+  console.log('createUser: req', req.body);
+    admin.auth().createUser({
+      email: req.body.emailAddress,
+      emailVerified: false,
+      password: req.body.pass,
+      displayName: "Harry Lincoln"
+    })
+    .then(function(userRecord) {
+      // See the UserRecord reference doc for the contents of userRecord.
+      console.log("Successfully created new user:", userRecord);
+      console.log("Continuing to set new stuff...");
+      const ref = db.ref("users");
+      ref.child(userRecord.uid).set({
+          displayName: userRecord.displayName,
+          test: 'test',
+          age: 21,
+          occupation: 'frontend dev',
+          hobbies: ['photography', 'coding', 'music']
+      });
+      res.json({
+        message: 'Completed BE task, user record updated',
+        user: userRecord
+      });
+      console.log("Finished setting new stuff");
+    })
+    .catch(function(error) {
+      console.log("Error creating new user:", error);
+    });
+});
+
 
 router.get('sign-in-with-custom-token', cors(), (req, res) => {
 
@@ -34,9 +64,8 @@ router.get('sign-in-with-custom-token', cors(), (req, res) => {
 
 router.get('/verifyIdToken', cors(), (req, res) => {
   let token = req.headers.authorization.split('Bearer ')[1];
-console.log(req.headers);
-  // jwt.verify(token, 'big-secret', /*{ algorithms: ['RS256'] },*/ function(err, decoded) {
-    console.log('token', token);
+  console.log(req.headers); 
+  console.log('token', token);
   admin.auth().verifyIdToken(token)
     .then(function(decodedToken) {
       idToken = decodedToken.uid;
@@ -56,34 +85,6 @@ router.use('/get-token', cors(), (req, res) => {
       })
       .catch(function(error) {
         console.log("Error creating custom token:", error);
-    });
-});
-
-router.use('/create-user', (req, res) => {
-  console.log('createUser: req', req.body);
-    admin.auth().createUser({
-      email: req.body.emailAddress,
-      emailVerified: false,
-      password: req.body.pass,
-      displayName: "Ally Pally"
-    })
-    .then(function(userRecord) {
-      // See the UserRecord reference doc for the contents of userRecord.
-      console.log("Successfully created new user:", userRecord);
-      console.log("Setting new stuff");
-
-      ref.child(userRecord.uid).set({
-          displayName: userRecord.displayName,
-          test: 'test'
-      });
-      console.log('set new stuff');
-      res.json({
-        message: 'set new stuff',
-        user: userRecord
-      })
-    })
-    .catch(function(error) {
-      console.log("Error creating new user:", error);
     });
 });
 
