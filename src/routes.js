@@ -42,7 +42,7 @@ router.use('/create-user', (req, res) => {
       ref.child(userRecord.uid).set({
           displayName: userRecord.displayName,
           test: 'test',
-          age: 21,
+          age: 28,
           occupation: 'frontend dev',
           hobbies: ['photography', 'coding', 'music']
       });
