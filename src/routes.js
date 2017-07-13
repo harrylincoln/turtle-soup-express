@@ -19,6 +19,11 @@ router.use((req, res, next) => {
 });
 
 router.use('/api', cors(), firebaseMiddleware.auth);
+router.get('/api/hello', (req, res) => {
+    res.json({
+        message: `You're logged in as ${res.locals.user.email} with Firebase UID: ${res.locals.user.uid}`
+    });
+});
 
 router.get('/', (req, res) => {
     res.json({
@@ -104,11 +109,5 @@ router.use('/add-data', (req, res) => {
       console.log("Error adding info:", error);
     });
 })
-
-router.get('/api/hello', (req, res) => {
-    res.json({
-        message: `You're logged in as ${res.locals.user.email} with Firebase UID: ${res.locals.user.uid}`
-    });
-});
 
 module.exports = router;
